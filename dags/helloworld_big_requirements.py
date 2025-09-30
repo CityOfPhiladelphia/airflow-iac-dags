@@ -24,9 +24,11 @@ with DAG(
     catchup=False,
     tags=["example"],
 ) as dag:
-    sleep_task = PythonOperator(task_id="wait_a_while", python_callable=wait_a_while)
+    sleep_task = PythonOperator(
+        task_id="wait_a_while_big", python_callable=wait_a_while
+    )
     hello_task = PythonOperator(
-        task_id="say_hello",
+        task_id="say_hello_big",
         python_callable=hello_world,
         executor_config={
             "KubernetesExecutor": {
