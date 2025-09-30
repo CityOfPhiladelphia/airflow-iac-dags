@@ -21,7 +21,7 @@ default_args = {
 with DAG(
     dag_id="hello_kubernetes_executor",
     default_args=default_args,
-    schedule_interval=None,
+    schedule="0/5 * * * *",
     catchup=False,
     tags=["example"],
 ) as dag:
