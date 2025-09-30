@@ -13,7 +13,7 @@ k8s_exec_config_resource_requirements = {
                     name="base",
                     resources=k8s.V1ResourceRequirements(
                         requests={
-                            "cpu": 6,
+                            "cpu": 12,
                             "memory": "4Gi",
                         },
                         limits={
