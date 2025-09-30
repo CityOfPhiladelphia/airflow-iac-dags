@@ -1,7 +1,30 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
+from kubernetes.client import models as k8s
 import time
+
+
+k8s_exec_config_resource_requirements = {
+    "pod_override": k8s.V1Pod(
+        spec=k8s.V1PodSpec(
+            containers=[
+                k8s.V1Container(
+                    name="base",
+                    resources=k8s.V1ResourceRequirements(
+                        requests={
+                            "cpu": 6,
+                            "memory": "4Gi",
+                        },
+                        limits={
+                            "memory": "4Gi",
+                        },
+                    ),
+                )
+            ]
+        )
+    )
+}
 
 
 def wait_a_while():
@@ -30,11 +53,5 @@ with DAG(
     hello_task = PythonOperator(
         task_id="say_hello_big",
         python_callable=hello_world,
-        executor_config={
-            "KubernetesExecutor": {
-                "request_memory": "4Gi",
-                "limit_memory": "4Gi",
-                "request_cpu": "6",
-            }
-        },
+        executor_config=k8s_exec_config_resource_requirements,
     )
