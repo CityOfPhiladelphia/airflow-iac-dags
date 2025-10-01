@@ -4,7 +4,7 @@ from airflow.hooks.base import BaseHook
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.operators.bash import BashOperator
 from datetime import datetime, timedelta
-from pytz import timezone6
+from pytz import timezone
 import json
 
 databridge_test_conn = PostgresHook.get_connection("databridge-v2-testing")
