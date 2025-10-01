@@ -4,9 +4,10 @@ from airflow.hooks.base import BaseHook
 from airflow.operators.bash import BashOperator
 from datetime import datetime, timedelta
 from pytz import timezone
+import json
 
 databridge_test_conn = BaseHook.get_connection("databridge-v2-testing")
-databridge_test_name = json.loads(databridge_conn.extra)["db_name"]
+databridge_test_name = json.loads(databridge_test_conn.extra)["db_name"]
 databridge_test_conn_string = f"{databridge_test_conn.login}/{databridge_test_conn.password}@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={databridge_test_conn.host})(PORT={databridge_test_conn.port}))(CONNECT_DATA=(SID={databridge_test_name})))"
 
 eastern = timezone("US/Eastern")
