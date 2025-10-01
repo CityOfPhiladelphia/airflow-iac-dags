@@ -26,5 +26,5 @@ with DAG(
 ) as dag:
     bash_operator = BashOperator(
         task_id="databridge_etl_tools_help",
-        bash_command=f"echo {databridge_test_conn_string}; databridge_etl_tools --help",
+        bash_command=f'echo "{databridge_test_conn_string}"; databridge_etl_tools --help',
     )
