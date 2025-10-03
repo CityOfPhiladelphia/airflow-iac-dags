@@ -37,11 +37,11 @@ with DAG(
                             resources=k8s.V1ResourceRequirements(
                                 requests={
                                     "cpu": f"{cpu_amt}m",
-                                    "memory": "128Mi",
+                                    "memory": "256Mi",
                                 },
                                 limits={
                                     "cpu": f"{cpu_amt}m",
-                                    "memory": "128Mi",
+                                    "memory": "256Mi",
                                 },
                             ),
                         )
