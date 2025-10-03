@@ -6,29 +6,6 @@ from kubernetes.client import models as k8s
 import time
 
 
-k8s_exec_config_resource_requirements = {
-    "pod_override": k8s.V1Pod(
-        spec=k8s.V1PodSpec(
-            containers=[
-                k8s.V1Container(
-                    name="base",
-                    resources=k8s.V1ResourceRequirements(
-                        requests={
-                            "cpu": "10m",
-                            "memory": "128Mi",
-                        },
-                        limits={
-                            "cpu": "10m",
-                            "memory": "128Mi",
-                        },
-                    ),
-                )
-            ]
-        )
-    )
-}
-
-
 def wait_a_while():
     time.sleep(10)
 
@@ -49,16 +26,36 @@ with DAG(
     catchup=False,
     tags=["example"],
 ) as dag:
-    sleep_task = PythonOperator(
-        task_id="wait_a_while_big", python_callable=wait_a_while
-    )
-    hello_task = PythonOperator(
-        task_id="say_hello_big",
-        python_callable=hello_world,
-        executor_config=k8s_exec_config_resource_requirements,
-    )
-    bash_operator = BashOperator(
-        task_id="databridge_etl_tools_pre",
-        bash_command="echo hello world",
-        executor_config=k8s_exec_config_resource_requirements,
-    )
+    for i in range(10):
+        cpu_amt = i * 10
+        k8s_exec_config_resource_requirements = {
+            "pod_override": k8s.V1Pod(
+                spec=k8s.V1PodSpec(
+                    containers=[
+                        k8s.V1Container(
+                            name="base",
+                            resources=k8s.V1ResourceRequirements(
+                                requests={
+                                    "cpu": f"{cpu_amt}m",
+                                    "memory": "128Mi",
+                                },
+                                limits={
+                                    "cpu": f"{cpu_amt}m",
+                                    "memory": "128Mi",
+                                },
+                            ),
+                        )
+                    ]
+                )
+            )
+        }
+        hello_task = PythonOperator(
+            task_id=f"say_hello_world_python_small_{cpu_amt}",
+            python_callable=hello_world,
+            executor_config=k8s_exec_config_resource_requirements,
+        )
+        bash_operator = BashOperator(
+            task_id=f"say_hello_world_bash_small_{cpu_amt}",
+            bash_command="echo hello world",
+            executor_config=k8s_exec_config_resource_requirements,
+        )
