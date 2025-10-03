@@ -61,20 +61,22 @@ with DAG(
         # executor_config=k8s_exec_config_custom_image,
     )
 
-    db_test_command = (
-        f"""
-            databridge_etl_tools db2 --table_name=ghactions_test1 --account_name=citygeo \
-                --enterprise_schema=viewer_citygeo --copy_from_source_schema=citygeo \
-                --libpq_conn_string={databridge_test_conn_string} \
-                --timeout=50 \
-                copy-dept-to-enterprise
-    """,
-    )
+    db_test_command = [
+        "databridge_etl_tools",
+        "db2",
+        "--table_name=ghactions_test1",
+        "--account_name=citygeo",
+        "--enterprise_schema=viewer_citygeo",
+        "--copy_from_source_schema=citygeo",
+        f"--libpq_conn_string={databridge_test_conn_string}",
+        "--timeout=50",
+        "copy-dept-to-enterprise",
+    ]
 
     bash_operator = BashOperator(
         task_id="databridge_etl_tools_help",
         # bash_command="echo hello; sleep 10; databridge_etl_tools --help",
         # bash_command=f'echo "{databridge_test_conn_string}"; databridge_etl_tools --help',
-        bash_command=db_test_command,
+        bash_command=" ".join(db_test_command),
         executor_config=k8s_exec_config_custom_image,
     )
