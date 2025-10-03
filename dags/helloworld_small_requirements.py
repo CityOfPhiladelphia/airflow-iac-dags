@@ -43,7 +43,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id="hello_big_kubernetes_executor",
+    dag_id="hello_small_kubernetes_executor",
     default_args=default_args,
     schedule=None,
     catchup=False,
