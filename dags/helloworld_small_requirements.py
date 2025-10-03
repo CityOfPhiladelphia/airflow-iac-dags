@@ -27,7 +27,7 @@ with DAG(
     tags=["example"],
 ) as dag:
     for i in range(10):
-        cpu_amt = i * 10
+        cpu_amt = i * 15
         k8s_exec_config_resource_requirements = {
             "pod_override": k8s.V1Pod(
                 spec=k8s.V1PodSpec(
