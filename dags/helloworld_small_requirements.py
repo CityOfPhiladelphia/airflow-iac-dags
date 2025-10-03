@@ -18,6 +18,7 @@ k8s_exec_config_resource_requirements = {
                             "memory": "128Mi",
                         },
                         limits={
+                            "cpu": "10m",
                             "memory": "128Mi",
                         },
                     ),
