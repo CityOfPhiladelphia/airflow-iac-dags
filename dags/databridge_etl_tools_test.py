@@ -9,7 +9,8 @@ from pytz import timezone
 import json
 
 databridge_test_conn = PostgresHook.get_connection("databridge-v2-testing")
-databridge_test_conn_string = f"{databridge_test_conn.login}/{databridge_test_conn.password}@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={databridge_test_conn.host})(PORT={databridge_test_conn.port}))(CONNECT_DATA=(SID={databridge_test_conn.schema})))"
+# databridge_test_conn_string = f"{databridge_test_conn.login}/{databridge_test_conn.password}@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={databridge_test_conn.host})(PORT={databridge_test_conn.port}))(CONNECT_DATA=(SID={databridge_test_conn.schema})))"
+databridge_test_conn_string = f"postgresql://{databridge_test_conn.login}:{databridge_test_conn.password}@{databridge_test_conn.host}:{databridge_test_conn.port}/{databridge_test_conn.schema}"
 
 eastern = timezone("US/Eastern")
 
@@ -59,9 +60,21 @@ with DAG(
         # bash_command=f'echo "{databridge_test_conn_string}"; databridge_etl_tools --help',
         # executor_config=k8s_exec_config_custom_image,
     )
+
+    db_test_command = (
+        f"""
+            databridge_etl_tools db2 --table_name=ghactions_test1 --account_name=citygeo \
+                --enterprise_schema=viewer_citygeo --copy_from_source_schema=citygeo \
+                --libpq_conn_string={databridge_test_conn_string} \
+                --timeout=50 \
+                copy-dept-to-enterprise
+    """,
+    )
+
     bash_operator = BashOperator(
         task_id="databridge_etl_tools_help",
-        bash_command="echo hello; sleep 10; databridge_etl_tools --help",
+        # bash_command="echo hello; sleep 10; databridge_etl_tools --help",
         # bash_command=f'echo "{databridge_test_conn_string}"; databridge_etl_tools --help',
+        bash_command=db_test_command,
         executor_config=k8s_exec_config_custom_image,
     )
