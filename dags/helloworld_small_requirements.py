@@ -33,11 +33,11 @@ for i in range(10):
                             resources=k8s.V1ResourceRequirements(
                                 requests={
                                     "cpu": f"{cpu_amt}m",
-                                    "memory": "256Mi",
+                                    "memory": "300Mi",
                                 },
                                 limits={
-                                    "cpu": f"{cpu_amt}m",
-                                    "memory": "256Mi",
+                                    # "cpu": f"{cpu_amt}m",
+                                    "memory": "300Mi",
                                 },
                             ),
                         )
@@ -46,12 +46,12 @@ for i in range(10):
             )
         }
         hello_task = PythonOperator(
-            task_id=f"say_hello_world_python_small_{cpu_amt}",
+            task_id="python",
             python_callable=hello_world,
             executor_config=k8s_exec_config_resource_requirements,
         )
         bash_operator = BashOperator(
-            task_id=f"say_hello_world_bash_small_{cpu_amt}",
+            task_id="bash",
             bash_command="echo hello world",
             executor_config=k8s_exec_config_resource_requirements,
         )
