@@ -13,6 +13,49 @@ databridge_test_conn = PostgresHook.get_connection("databridge-v2-testing")
 # If your script takes a libql string, you can build it manually like this
 databridge_test_conn_string = f"postgresql://{databridge_test_conn.login}:{databridge_test_conn.password}@{databridge_test_conn.host}:{databridge_test_conn.port}/{databridge_test_conn.schema}"
 
+# See README.md
+executor_config_small_resources = {
+    "pod_override": k8s.V1Pod(
+        spec=k8s.V1PodSpec(
+            containers=[
+                k8s.V1Container(
+                    name="base",
+                    resources=k8s.V1ResourceRequirements(
+                        requests={
+                            "cpu": "150m",  # also valid, cpu: 0.4
+                            "memory": "300Mi",
+                        },
+                        limits={
+                            "memory": "300Mi",  # request_memory and limit_memory should always be the same
+                        },
+                    ),
+                )
+            ]
+        )
+    )
+}
+
+executor_config_big_resources = {
+    "pod_override": k8s.V1Pod(
+        spec=k8s.V1PodSpec(
+            containers=[
+                k8s.V1Container(
+                    name="base",
+                    resources=k8s.V1ResourceRequirements(
+                        requests={
+                            "cpu": "400m",  # also valid, cpu: 0.4
+                            "memory": "800Mi",
+                        },
+                        limits={
+                            "memory": "800Mi",  # request_memory and limit_memory should always be the same
+                        },
+                    ),
+                )
+            ]
+        )
+    )
+}
+
 
 def wait_a_while():
     time.sleep(10)
@@ -44,16 +87,19 @@ with DAG(
         # Name of task must be unique within the dag, not globally
         task_id="wait_a_while",
         python_callable=wait_a_while,  # This refers to `def wait_a_while()`
+        executor_config=executor_config_small_resources,
     )
     # Simple python hello world task
     hello_task_python = PythonOperator(
         task_id="hello_task_python",
         python_callable=hello_world,  # This refers to `def hello_world()`
+        # Leaving out executor_config just uses the default
     )
     # Simple bash hello world task
     hello_task_bash = BashOperator(
         task_id="hello_task_bash",
         bash_command="echo hello world",
+        executor_config=executor_config_small_resources,
     )
     # Task with bigger requirements
     # By default, tasks have maximum of 300Mi of Memory (Airflow itself needs about 256)
@@ -64,26 +110,7 @@ with DAG(
     hello_task_python_big = PythonOperator(
         task_id="hello_task_python_big",
         python_callable=hello_world,
-        executor_config={
-            "pod_override": k8s.V1Pod(
-                spec=k8s.V1PodSpec(
-                    containers=[
-                        k8s.V1Container(
-                            name="base",
-                            resources=k8s.V1ResourceRequirements(
-                                requests={
-                                    "cpu": "400m",  # also valid, cpu: 0.4
-                                    "memory": "800Mi",
-                                },
-                                limits={
-                                    "memory": "800Mi",  # request_memory and limit_memory should always be the same
-                                },
-                            ),
-                        )
-                    ]
-                )
-            )
-        },
+        executor_config=executor_config_big_resources,
     )
 
     db_test_command = [
