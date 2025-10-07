@@ -13,7 +13,7 @@ databridge_test_conn = PostgresHook.get_connection("databridge-v2-testing")
 # If your script takes a libql string, you can build it manually like this
 databridge_test_conn_string = f"postgresql://{databridge_test_conn.login}:{databridge_test_conn.password}@{databridge_test_conn.host}:{databridge_test_conn.port}/{databridge_test_conn.schema}"
 
-# See README.md
+# See README.md "Going below the default"
 executor_config_small_resources = {
     "pod_override": k8s.V1Pod(
         spec=k8s.V1PodSpec(
@@ -35,6 +35,7 @@ executor_config_small_resources = {
     )
 }
 
+# See README.md "Going above the default"
 executor_config_big_resources = {
     "pod_override": k8s.V1Pod(
         spec=k8s.V1PodSpec(

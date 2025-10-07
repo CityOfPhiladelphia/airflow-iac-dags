@@ -53,7 +53,7 @@ executor_config_small_resources = {
 For big tasks, like anything with lots of loops or calculations, you can go above the default
 
 ```py
-executor_config_small_resources = {
+executor_config_big_resources = {
     "pod_override": k8s.V1Pod(
         spec=k8s.V1PodSpec(
             containers=[
