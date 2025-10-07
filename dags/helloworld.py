@@ -27,9 +27,10 @@ default_args = {
     "start_date": datetime.now(timezone("US/Eastern")),
 }
 
+# Create the DAG
 with DAG(
     # Name of the DAG, must be globally unique
-    dag_id="hello_kubernetes_executor",
+    dag_id="hello_world_example",
     default_args=default_args,
     # Cron schedule, this runs every 15 minutes. Set to 'None' for manual only
     schedule="0/15 * * * *",
@@ -37,6 +38,7 @@ with DAG(
     # Tags are useful for filtering
     tags=["example"],
 ) as dag:
+    # Create the tasks inside the dag
     # Simple python sleep task
     sleep_task = PythonOperator(
         # Name of task must be unique within the dag, not globally
