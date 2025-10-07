@@ -21,4 +21,4 @@ with DAG(
     tags=["example"],
 ) as dag:
     for i in range(20):
-        hello_task = BashOperator(task_id=f"hello_task_{i}", command="echo hello")
+        hello_task = BashOperator(task_id=f"hello_task_{i}", bash_command="echo hello")

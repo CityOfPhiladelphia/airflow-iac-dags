@@ -44,6 +44,6 @@ with DAG(
 ) as dag:
     hello_task_big = BashOperator(
         task_id="hello_task_big",
-        command="echo hello",
+        bash_command="echo hello",
         executor_config=executor_config_very_big_resources,
     )
