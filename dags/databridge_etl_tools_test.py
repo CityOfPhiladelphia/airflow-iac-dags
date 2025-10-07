@@ -19,21 +19,6 @@ default_args = {
     "start_date": datetime.now(eastern),
 }
 
-# Use databridge etl tools image
-# k8s_exec_config_custom_image = {
-#    "pod_override": k8s.V1Pod(
-#        spec=k8s.V1PodSpec(
-#            containers=[
-#                k8s.V1Container(
-#                    name="base",
-#                    image="880708401960.dkr.ecr.us-east-1.amazonaws.com/databridge-etl-tools-v2-testing:latest",
-#                )
-#            ],
-#            security_context=k8s.V1SecurityContext(run_as_user="1000"),
-#        )
-#    )
-# }
-
 k8s_exec_config_custom_image = {
     "pod_override": k8s.V1Pod(
         spec=k8s.V1PodSpec(
