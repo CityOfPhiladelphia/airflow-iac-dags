@@ -14,9 +14,15 @@ from pytz import timezone
 executor_config_do_not_disrupt = {
     "pod_override": k8s.V1Pod(
         spec=k8s.V1PodSpec(
+            # This is required
+            containers=[
+                k8s.V1Container(
+                    name="base",
+                )
+            ],
             # Karpenter will ensure that this pod goes on an on-demand node
             # so it can't be shut down by spot interrupts
-            node_selector={"karpenter.sh/capacity-type": "on-demand"}
+            node_selector={"karpenter.sh/capacity-type": "on-demand"},
         ),
         metadata=k8s.V1ObjectMeta(
             annotations={
