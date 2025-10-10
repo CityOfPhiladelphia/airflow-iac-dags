@@ -18,11 +18,11 @@ executor_config_small_resources = {
                     name="base",
                     resources=k8s.V1ResourceRequirements(
                         requests={
-                            "cpu": "100",  # also valid, cpu: 0.4
-                            "memory": "256Mi",
+                            "cpu": "100m",  # also valid, cpu: 0.4
+                            "memory": "300Mi",
                         },
                         limits={
-                            "memory": "256Mi",  # request_memory and limit_memory should always be the same
+                            "memory": "300Mi",  # request_memory and limit_memory should always be the same
                         },
                     ),
                 )
