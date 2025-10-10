@@ -37,13 +37,13 @@ with DAG(
     dag_id="long_test",
     default_args=default_args,
     # Cron schedule, this runs every 20 minutes. Set to 'None' for manual only
-    schedule="0/20 * * * *",
+    schedule="0/30 * * * *",
     catchup=False,
     # Tags are useful for filtering
     tags=["example"],
 ) as dag:
     sleep_task = BashOperator(
         task_id="sleep",
-        bash_command="sleep 600; echo completed",
+        bash_command="sleep 900; echo completed",  # Sleep for 15 mins
         executor_config=executor_config_small_resources,
     )
