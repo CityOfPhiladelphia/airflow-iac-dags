@@ -18,7 +18,7 @@ executor_config_small_resources = {
                     name="base",
                     resources=k8s.V1ResourceRequirements(
                         requests={
-                            "cpu": "100m",  # also valid, cpu: 0.4
+                            "cpu": "100m",
                             "memory": "300Mi",
                         },
                         limits={
@@ -37,7 +37,7 @@ with DAG(
     dag_id="long_test",
     default_args=default_args,
     # Cron schedule, this runs every 20 minutes. Set to 'None' for manual only
-    schedule="0/30 * * * *",
+    schedule="0/20 * * * *",
     catchup=False,
     # Tags are useful for filtering
     tags=["example"],
@@ -46,4 +46,5 @@ with DAG(
         task_id="sleep",
         bash_command="sleep 900; echo completed",  # Sleep for 15 mins
         executor_config=executor_config_small_resources,
+        retries=1,
     )
