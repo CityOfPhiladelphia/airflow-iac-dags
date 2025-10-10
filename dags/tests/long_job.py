@@ -5,7 +5,12 @@ from datetime import datetime
 from pytz import timezone
 import time
 
-executor_config_very_big_resources = {
+default_args = {
+    "owner": "airflow",
+    "start_date": datetime.now(timezone("US/Eastern")),
+}
+
+executor_config_small_resources = {
     "pod_override": k8s.V1Pod(
         spec=k8s.V1PodSpec(
             containers=[
@@ -13,11 +18,11 @@ executor_config_very_big_resources = {
                     name="base",
                     resources=k8s.V1ResourceRequirements(
                         requests={
-                            "cpu": "4",  # also valid, cpu: 0.4
-                            "memory": "8Gi",
+                            "cpu": "100",  # also valid, cpu: 0.4
+                            "memory": "256Mi",
                         },
                         limits={
-                            "memory": "8Gi",  # request_memory and limit_memory should always be the same
+                            "memory": "256Mi",  # request_memory and limit_memory should always be the same
                         },
                     ),
                 )
@@ -26,23 +31,19 @@ executor_config_very_big_resources = {
     )
 }
 
-default_args = {
-    "owner": "airflow",
-    "start_date": datetime.now(timezone("US/Eastern")),
-}
-
 # Create the DAG
 with DAG(
     # Name of the DAG, must be globally unique
-    dag_id="very_big_test",
+    dag_id="long_test",
     default_args=default_args,
-    schedule=None,
+    # Cron schedule, this runs every 20 minutes. Set to 'None' for manual only
+    schedule="0/20 * * * *",
     catchup=False,
     # Tags are useful for filtering
     tags=["example"],
 ) as dag:
-    hello_task_big = BashOperator(
-        task_id="hello_task_big",
-        bash_command="echo hello",
-        executor_config=executor_config_very_big_resources,
+    sleep_task = BashOperator(
+        task_id="sleep",
+        bash_command="sleep 600; echo completed",
+        executor_config=executor_config_small_resources,
     )

@@ -1,3 +1,41 @@
+# Airflow Dags for EKS
+
+## Limitations and Consequences of EKS and Karpenter
+
+This Airflow deployment in EKS uses a tool called Karpenter which heavily optimizes the cost of the cluster, sometimes giving up to 80% discounts on regular compute costs. However, it comes with a downside:
+
+**At any point in time, a job or task can be cancelled without warning**
+
+This is not a problem for most jobs, since Airflow is specialized in retrying jobs on failures. However, if your specific DAG must run the whole way through, you can override these settings on a per task basis.
+
+## Preventing disruption
+
+```py
+executor_config_do_not_disrupt = {
+    "pod_override": k8s.V1Pod(
+        spec=k8s.V1PodSpec(
+            # This is required
+            containers=[
+                k8s.V1Container(
+                    name="base",
+                )
+            ],
+            # Karpenter will ensure that this pod goes on an on-demand node
+            # so it can't be shut down by spot interrupts
+            node_selector={"karpenter.sh/capacity-type": "on-demand"},
+        ),
+        metadata=k8s.V1ObjectMeta(
+            annotations={
+                # Karpenter will not delete the node that this pod is on just for
+                # cost optimization reasons
+                "karpenter.sh/do-not-disrupt": "true"
+            }
+        ),
+    )
+}
+
+```
+
 ## Assigning resource requests and limits to tasks
 
 By default, tasks are allocated ,a moderate amount of memory
