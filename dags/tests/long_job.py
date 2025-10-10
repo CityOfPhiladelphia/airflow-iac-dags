@@ -36,8 +36,8 @@ with DAG(
     # Name of the DAG, must be globally unique
     dag_id="long_test",
     default_args=default_args,
-    # Cron schedule, this runs every 20 minutes. Set to 'None' for manual only
-    schedule="0/20 * * * *",
+    # Cron schedule, this runs every  two hours. Set to 'None' for manual only
+    schedule="0 */2 * * *",
     catchup=False,
     # Tags are useful for filtering
     tags=["example"],

@@ -77,7 +77,7 @@ with DAG(
     dag_id="hello_world_example",
     default_args=default_args,
     # Cron schedule, this runs every 15 minutes. Set to 'None' for manual only
-    schedule="0/15 * * * *",
+    schedule="30 */2 * * *",
     catchup=False,
     # Tags are useful for filtering
     tags=["example"],
