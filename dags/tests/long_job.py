@@ -42,9 +42,18 @@ with DAG(
     # Tags are useful for filtering
     tags=["example"],
 ) as dag:
-    sleep_task = BashOperator(
-        task_id="sleep",
+    sleep_5_task = BashOperator(
+        task_id="sleep_5",
+        bash_command="sleep 300; echo completed",  # Sleep for 15 mins
+        executor_config=executor_config_small_resources,
+    )
+    sleep_10_task = BashOperator(
+        task_id="sleep_10",
+        bash_command="sleep 600; echo completed",  # Sleep for 15 mins
+        executor_config=executor_config_small_resources,
+    )
+    sleep_15_task = BashOperator(
+        task_id="sleep_15",
         bash_command="sleep 900; echo completed",  # Sleep for 15 mins
         executor_config=executor_config_small_resources,
-        retries=1,
     )
