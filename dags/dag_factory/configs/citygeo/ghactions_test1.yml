@@ -1,0 +1,6 @@
+table_name: ghactions_test1
+oracle_account_name: GIS_GSG
+account_name: citygeo
+status: enabled
+share_privileges: li,enterprise
+migrated: true
