@@ -388,6 +388,7 @@ def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
 
 
 def run_dagfactory():
+    print("Running dag factory")
     # Load OS config
     try:
         airflow_env = os.environ["ENVIRONMENT"]
