@@ -220,7 +220,7 @@ def run_dagfactory():
             if dag_config["status"] == "enabled":
                 print(f"Running dag factory for config: {table_config_file_name}")
                 databridge_dag_factory(
-                    dag_config, s3_bucket=s3_bucket, dbv2_conn_id=dbv2_conn_id
+                    dag_config, is_prod, s3_bucket=s3_bucket, dbv2_conn_id=dbv2_conn_id
                 )
 
 
