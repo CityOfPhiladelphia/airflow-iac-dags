@@ -395,7 +395,7 @@ def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
     with DAG(
         dag_id=dag_config["dag_id"],
         # now minus one week
-        schedule_interval=dag_config["schedule_interval"],
+        schedule=dag_config["schedule_interval"],
         default_args=default_args,
         max_active_runs=1,
         dagrun_timeout=dag_timeout,
