@@ -4,7 +4,7 @@ import re
 from packaging.version import Version
 
 
-def checks_func(
+def checks(
     ti,
     table_name,
     table_schema,
