@@ -390,14 +390,14 @@ def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
 def run_dagfactory():
     # Load OS config
     try:
-        s3_bucket = os.environ["S3_NAME"]
-    except KeyError:
-        raise Exception("Environment variable $S3_NAME missing")
-
-    try:
         airflow_env = os.environ["ENVIRONMENT"]
     except KeyError:
         raise Exception("Environment variable $ENVIRONMENT missing")
+
+    try:
+        s3_bucket = os.environ["S3_NAME"]
+    except KeyError:
+        raise Exception("Environment variable $S3_NAME missing")
 
     # Establish databridge connection based on environment
     if airflow_env == "prod-v2":
