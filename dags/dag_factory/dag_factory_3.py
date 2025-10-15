@@ -78,19 +78,27 @@ def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
             },
         )
         # Send department to viewer
-        upsert_to_viewer_command = [
+        send_dept_to_viewer_command = [
             "databridge_etl_tools",
-            "postgres",
-            f"--connection_string={dbv2_conn_string}",
+            "db2",
             f"--table_name={dag_config['table_name']}",
-            f"--table_schema={viewer_account}",
-            "upsert-table",
-            f"--staging_table={dag_config['table_name']}",
-            f"--staging_schema={dag_config['account_name']}",
-            f"--delete_stale={dag_config['delete_stale']}",
+            f"--account_name={dag_config['account_name']}",
+            f"--enterprise_schema={viewer_account}",
+            f"--copy_from_source_schema={dag_config['account_name']}",
+            f"--libpq_conn_string={dbv2_conn_string}",
+            f"--timeout={int(dag_config['execution_timeout'].total_seconds() // 60)}",
         ]
+        if dag_config["index_fields"]:
+            send_dept_to_viewer_command.append(
+                f"--index_fields={dag_config['index_fields']}"
+            )
+
+        # finish off command.
+        send_dept_to_viewer_command.append("copy-dept-to-enterprise")
+
         send_dept_to_viewer = BashOperator(
-            task_id="upsert_to_viewer", bash_command=" ".join(upsert_to_viewer_command)
+            task_id="send_dept_to_viewer",
+            bash_command=" ".join(send_dept_to_viewer_command),
         )
         checks >> send_dept_to_viewer
 
