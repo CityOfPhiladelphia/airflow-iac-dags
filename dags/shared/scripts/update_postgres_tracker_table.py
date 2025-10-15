@@ -1,4 +1,5 @@
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.providers.standard.operators.python import get_current_context
 from airflow.hooks.base import BaseHook
 import psycopg2
 from datetime import datetime
@@ -250,13 +251,13 @@ def update_postgres_tracker_table(
     upload_to_ago_dry_run,
     ago_user,
     ago_alternate_upload_name,
-    **context,
 ):
     """
     If the dag is successful, update the latest Postgres XMIN as well as the Metadata entry in Knack.
     """
 
     # check if all past tasks successeful
+    context = get_current_context()
     dr = context["dag_run"]
     ti = context["ti"]
     account_name = account_name.lower()
@@ -266,7 +267,7 @@ def update_postgres_tracker_table(
     # state being 'failed', 'success', 'running', etc.
     dag_tasks = {
         task.task_id: task.state
-        for task in dr.task_instances
+        for task in dr.fetch_task_instances()
         if task.task_id != ti.task_id
     }
 
