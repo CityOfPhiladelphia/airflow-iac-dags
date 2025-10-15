@@ -266,7 +266,7 @@ def update_postgres_tracker_table(
     # state being 'failed', 'success', 'running', etc.
     dag_tasks = {
         task.task_id: task.state
-        for task in dr.task_instances()
+        for task in dr.task_instances
         if task.task_id != ti.task_id
     }
 
