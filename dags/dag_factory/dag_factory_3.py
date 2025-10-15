@@ -10,11 +10,15 @@ from packaging.version import Version
 import re
 import logging
 from datetime import datetime, timedelta
+from airflow.operators.dummy import DummyOperator
 
 sys.path.append("/opt/airflow/dags/shared")
 
 from yaml_config import get_yaml_data, DagConfig
 from scripts.checks import checks as checks_func
+from scripts.set_viewer_privileges import (
+    set_viewer_privileges as set_viewer_privileges_func,
+)
 
 
 def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
@@ -100,7 +104,24 @@ def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
             task_id="send_dept_to_viewer",
             bash_command=" ".join(send_dept_to_viewer_command),
         )
-        checks >> send_dept_to_viewer
+
+        # Set viewer privs
+        if not dag_config["skip_optional_tasks"]:
+            set_viewer_privileges = PythonOperator(
+                task_id="set_viewer_privileges",
+                python_callable=set_viewer_privileges_func,
+                op_kwargs={
+                    "share_privileges": dag_config["share_privileges"],
+                    "account_name": dag_config["account_name"],
+                    "table_name": dag_config["table_name"],
+                    "postgres_conn_id": dbv2_conn_id,
+                    "viewer_account": viewer_account,
+                },
+            )
+        else:
+            set_viewer_privileges = DummyOperator(task_id="skip_set_viewer_privileges")
+
+        checks >> send_dept_to_viewer >> set_viewer_privileges
 
 
 def run_dagfactory():
