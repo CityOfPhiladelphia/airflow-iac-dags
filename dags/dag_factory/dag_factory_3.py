@@ -5,12 +5,12 @@ import json
 from pytz import timezone
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
+from airflow.operators.empty import EmptyOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from packaging.version import Version
 import re
 import logging
 from datetime import datetime, timedelta
-from airflow.operators.dummy import DummyOperator
 
 sys.path.append("/opt/airflow/dags/shared")
 
@@ -119,7 +119,7 @@ def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
                 },
             )
         else:
-            set_viewer_privileges = DummyOperator(task_id="skip_set_viewer_privileges")
+            set_viewer_privileges = EmptyOperator(task_id="skip_set_viewer_privileges")
 
         checks >> send_dept_to_viewer >> set_viewer_privileges
 
