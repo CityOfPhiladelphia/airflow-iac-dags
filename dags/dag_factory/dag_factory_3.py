@@ -368,7 +368,7 @@ def checks_func(
 
 def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
     # Extract creds and conn string
-    dbv2_creds = PostgresHook(postgres_conn_id=dbv2_conn_id).get_connection()
+    dbv2_creds = PostgresHook.get_connection(conn_id=dbv2_conn_id)
     dbv2_conn_string = f"postgresql://{dbv2_creds.login}:{dbv2_creds.password}@{dbv2_creds.host}:{dbv2_creds.port}/{dbv2_creds.schema}"
     # Call the checks function
     checks = PythonOperator(
