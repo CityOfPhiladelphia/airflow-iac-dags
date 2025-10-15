@@ -22,6 +22,16 @@ def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
     dbv2_creds = PostgresHook.get_connection(dbv2_conn_id)
     dbv2_conn_string = f"postgresql://{dbv2_creds.login}:{dbv2_creds.password}@{dbv2_creds.host}:{dbv2_creds.port}/{dbv2_creds.schema}"
 
+    # Set viewer account at the top level for use elsewhere
+    if dag_config["override_viewer_account"] and isinstance(
+        dag_config["override_viewer_account"], str
+    ):
+        viewer_account = (
+            f"viewer_{dag_config['override_viewer_account'].replace('viewer_', '')}"
+        )
+    else:
+        viewer_account = f"viewer_{dag_config['account_name']}"
+
     # Default args used for constructing/initializing operators, e.g. we can set
     # defaults for all the tasks below. Important ones being the retry amounts and execuption timeouts.
     # reference: https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/models/dag/index.html
@@ -67,6 +77,22 @@ def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
                 "force_registered": dag_config["force_viewer_registered"],
             },
         )
+        # Send department to viewer
+        upsert_to_viewer_command = [
+            "databridge_etl_tools",
+            "postgres",
+            f"--connection_string={dbv2_conn_string}",
+            f"--table_name={dag_config['table_name']}",
+            f"--table_schema={viewer_account}",
+            "upsert-table",
+            f"--staging_table={dag_config['table_name']}",
+            f"--staging_schema={dag_config['account_name']}",
+            f"--delete_stale={dag_config['delete_stale']}",
+        ]
+        send_dept_to_viewer = BashOperator(
+            task_id="upsert_to_viewer", bash_command=" ".join(upsert_to_viewer_command)
+        )
+        checks >> send_dept_to_viewer
 
 
 def run_dagfactory():
