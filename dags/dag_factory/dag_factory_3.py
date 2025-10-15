@@ -7,6 +7,7 @@ from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.utils.trigger_rule import TriggerRule
 from packaging.version import Version
 import re
 import logging
@@ -19,9 +20,12 @@ from scripts.checks import checks as checks_func
 from scripts.set_viewer_privileges import (
     set_viewer_privileges as set_viewer_privileges_func,
 )
+from scripts.update_postgres_tracker_table import (
+    update_postgres_tracker_table as update_postgres_tracker_table_func,
+)
 
 
-def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
+def databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id):
     # Extract creds and conn string
     dbv2_creds = PostgresHook.get_connection(dbv2_conn_id)
     dbv2_conn_string = f"postgresql://{dbv2_creds.login}:{dbv2_creds.password}@{dbv2_creds.host}:{dbv2_creds.port}/{dbv2_creds.schema}"
@@ -121,7 +125,33 @@ def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
         else:
             set_viewer_privileges = EmptyOperator(task_id="skip_set_viewer_privileges")
 
-        checks >> send_dept_to_viewer >> set_viewer_privileges
+        # Update tracker table
+        update_tracker_table_and_metadata = PythonOperator(
+            task_id="update_tracker_table_and_metadata",
+            python_callable=update_postgres_tracker_table_func,
+            trigger_rule=TriggerRule.ALL_DONE,
+            retries=10,
+            # these will be passed to the function as "kwargs"
+            op_kwargs={
+                "account_name": dag_config["account_name"],
+                "ago_user": "TEMPFIXLATER",
+                "upload_to_knack": False,
+                "upload_to_knack_dry_run": not is_prod,
+                "upload_to_ago": dag_config["upload_to_ago"],
+                "upload_to_ago_dry_run": not is_prod,
+                "table_name": dag_config["table_name"],
+                "ago_alternate_upload_name": dag_config["ago_alternate_upload_name"],
+                "dest_schema": viewer_account,
+                "conn_id": dbv2_conn_id,
+            },
+        )
+
+        (
+            checks
+            >> send_dept_to_viewer
+            >> set_viewer_privileges
+            >> update_tracker_table_and_metadata
+        )
 
 
 def run_dagfactory():
@@ -138,8 +168,10 @@ def run_dagfactory():
         raise Exception("Environment variable $S3_NAME missing")
 
     # Establish databridge connection based on environment
+    is_prod = False
     if airflow_env == "prod-v2":
         dbv2_conn_id = "databridge-v2"
+        is_prod = True
         # TEMPORARY
         raise Exception("TEMP, AIRFLOW PROD IS DISABLED")
     elif airflow_env == "test-v2":
