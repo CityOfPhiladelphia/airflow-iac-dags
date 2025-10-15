@@ -1,5 +1,5 @@
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.hooks.base_hook import BaseHook
+from airflow.hooks.base import BaseHook
 import psycopg2
 from datetime import datetime
 import pytz
