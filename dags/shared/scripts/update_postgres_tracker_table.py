@@ -1,5 +1,6 @@
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.standard.operators.python import get_current_context
+from airflow.models.taskinstance import TaskInstance
 from airflow.hooks.base import BaseHook
 import psycopg2
 from datetime import datetime
@@ -260,16 +261,32 @@ def update_postgres_tracker_table(
     context = get_current_context()
     dr = context["dag_run"]
     ti = context["ti"]
+
+    session = context["session"]  # Airflow injects session into context
+
+    task_instances = (
+        session.query(TaskInstance)
+        .filter(
+            TaskInstance.dag_id == dr.dag_id,
+            TaskInstance.execution_date == dr.execution_date,
+        )
+        .all()
+    )
+
+    dag_tasks = {
+        ti.task_id: ti.state for ti in task_instances if ti.task_id != ti.task_id
+    }
+
     account_name = account_name.lower()
     table_name = table_name.lower()
 
     # Make a dictionary of all tasks in the dag where the key is the task name, and the value is it's state
     # state being 'failed', 'success', 'running', etc.
-    dag_tasks = {
-        task.task_id: task.state
-        for task in dr.fetch_task_instances()
-        if task.task_id != ti.task_id
-    }
+    # dag_tasks = {
+    #    task.task_id: task.state
+    #    for task in dr.get_task_instances()
+    #    if task.task_id != ti.task_id
+    # }
 
     dag_tasks.pop("email_data_stewards_on_fail", None)
 
