@@ -6,12 +6,13 @@ from pytz import timezone
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-from yaml_config import get_yaml_data, DagConfig
 from packaging.version import Version
 import re
 import logging
 
-# sys.path.append("/opt/airflow/dags/")
+sys.path.append("/opt/airflow/dags/scripts")
+
+from yaml_config import get_yaml_data, DagConfig
 
 
 # Checks function
