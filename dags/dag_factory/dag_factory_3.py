@@ -9,6 +9,7 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 from packaging.version import Version
 import re
 import logging
+from datetime import datetime, timedelta
 
 sys.path.append("/opt/airflow/dags/scripts")
 
@@ -370,21 +371,52 @@ def databridge_dag_factory(dag_config, s3_bucket, dbv2_conn_id):
     # Extract creds and conn string
     dbv2_creds = PostgresHook.get_connection(dbv2_conn_id)
     dbv2_conn_string = f"postgresql://{dbv2_creds.login}:{dbv2_creds.password}@{dbv2_creds.host}:{dbv2_creds.port}/{dbv2_creds.schema}"
-    # Call the checks function
-    checks = PythonOperator(
-        task_id="checks",
-        python_callable=checks_func,
-        op_kwargs={
-            "table_name": dag_config["table_name"],
-            "table_schema": dag_config["account_name"],
-            "conn_id": dbv2_conn_id,
-            "target_table_schema": dag_config["source_schema"],
-            "rowcount_difference_threshold": dag_config[
-                "rowcount_difference_threshold"
-            ],
-            "force_registered": dag_config["force_viewer_registered"],
-        },
-    )
+
+    # Default args used for constructing/initializing operators, e.g. we can set
+    # defaults for all the tasks below. Important ones being the retry amounts and execuption timeouts.
+    # reference: https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/models/dag/index.html
+    eastern = timezone("US/Eastern")
+
+    default_args = {
+        "owner": "airflow",
+        "retries": 3 if os.environ["ENVIRONMENT"] == "prod-v2" else 1,
+        "retry_delay": timedelta(seconds=15),
+        "execution_timeout": dag_config["execution_timeout"],
+    }
+
+    if dag_config["dagrun_timeout"]:
+        dag_timeout = timedelta(seconds=dag_config["dagrun_timeout"])
+    else:
+        dag_timeout = None
+
+    #######################################################
+    # Where we actually construct our DAG and its tasks.  #
+    #######################################################
+    with DAG(
+        dag_id=dag_config["dag_id"],
+        # now minus one week
+        schedule_interval=dag_config["schedule_interval"],
+        default_args=default_args,
+        max_active_runs=1,
+        dagrun_timeout=dag_timeout,
+        catchup=False,  # Don't queue up a dag run for every missed dag
+        tags=dag_config["tags"],
+    ) as dag:
+        # Call the checks function
+        checks = PythonOperator(
+            task_id="checks",
+            python_callable=checks_func,
+            op_kwargs={
+                "table_name": dag_config["table_name"],
+                "table_schema": dag_config["account_name"],
+                "conn_id": dbv2_conn_id,
+                "target_table_schema": dag_config["source_schema"],
+                "rowcount_difference_threshold": dag_config[
+                    "rowcount_difference_threshold"
+                ],
+                "force_registered": dag_config["force_viewer_registered"],
+            },
+        )
 
 
 def run_dagfactory():
