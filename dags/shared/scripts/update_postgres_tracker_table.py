@@ -1,7 +1,5 @@
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.models.taskinstance import TaskInstance
 from airflow.hooks.base import BaseHook
-from airflow.models.dagrun import DagRun
 import psycopg2
 from datetime import datetime
 import pytz
@@ -259,8 +257,8 @@ def update_postgres_tracker_table(
     """
 
     # check if all past tasks successeful
-    dr: DagRun = context["dag_run"]
-    ti: TaskInstance = context["ti"]
+    dr = context["dag_run"]
+    ti = context["ti"]
 
     account_name = account_name.lower()
     table_name = table_name.lower()
