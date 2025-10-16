@@ -90,6 +90,8 @@ def hello_world_example():
     [hello_world1, hello_world2, hello_world_python_big] >> db_test
 
 
+hello_world_example()
+
 # default_args = {
 #    "owner": "airflow",
 #    "start_date": datetime.now(timezone("US/Eastern")),
