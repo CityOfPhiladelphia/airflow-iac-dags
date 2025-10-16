@@ -24,31 +24,53 @@ from scripts.update_postgres_tracker_table import (
 )
 
 
-@dag(max_active_runs=1, catchup=False)
-def databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id):
-    if dag_config["override_viewer_account"] and isinstance(
-        dag_config["override_viewer_account"], str
-    ):
-        viewer_account = (
-            f"viewer_{dag_config['override_viewer_account'].replace('viewer_', '')}"
-        )
+def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
+    if dag_config["dagrun_timeout"]:
+        dag_timeout = timedelta(seconds=dag_config["dagrun_timeout"])
     else:
-        viewer_account = f"viewer_{dag_config['account_name']}"
+        dag_timeout = None
 
-    @task()
-    def checks():
-        context = get_current_context()
-        checks_func(
-            ti=context["ti"],
-            table_name=dag_config["table_name"],
-            table_schema=dag_config["account_name"],
-            conn_id=dbv2_conn_id,
-            target_table_schema=dag_config["source_schema"],
-            rowcount_difference_threshold=dag_config["rowcount_difference_threshold"],
-            force_registered=dag_config["force_viewer_registered"],
-        )
+    @dag(
+        dag_id=dag_config["dag_id"],
+        schedule=dag_config["schedule_interval"],
+        dagrun_timeout=dag_timeout,
+        max_active_runs=1,
+        catchup=False,
+        tags=dag_config["tags"],
+        default_args={
+            "retries": 3 if is_prod else 1,
+            "retry_delay": timedelta(seconds=15),
+            "execution_timeout": dag_config["execution_timeout"],
+        },
+    )
+    def databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id):
+        if dag_config["override_viewer_account"] and isinstance(
+            dag_config["override_viewer_account"], str
+        ):
+            viewer_account = (
+                f"viewer_{dag_config['override_viewer_account'].replace('viewer_', '')}"
+            )
+        else:
+            viewer_account = f"viewer_{dag_config['account_name']}"
 
-    checks()
+        @task()
+        def checks():
+            context = get_current_context()
+            checks_func(
+                ti=context["ti"],
+                table_name=dag_config["table_name"],
+                table_schema=dag_config["account_name"],
+                conn_id=dbv2_conn_id,
+                target_table_schema=dag_config["source_schema"],
+                rowcount_difference_threshold=dag_config[
+                    "rowcount_difference_threshold"
+                ],
+                force_registered=dag_config["force_viewer_registered"],
+            )
+
+        checks()
+
+    databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id)
 
 
 # def databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id):
@@ -249,23 +271,9 @@ def run_dagfactory():
                 #    dag_config, is_prod, s3_bucket=s3_bucket, dbv2_conn_id=dbv2_conn_id
                 # )
                 # Get timeout
-                if dag_config["dagrun_timeout"]:
-                    dag_timeout = timedelta(seconds=dag_config["dagrun_timeout"])
-                else:
-                    dag_timeout = None
-
-                databridge_dag_factory.override(
-                    dag_id=dag_config["dag_id"],
-                    # now minus one week
-                    schedule=dag_config["schedule_interval"],
-                    dagrun_timeout=dag_timeout,
-                    tags=dag_config["tags"],
-                    default_args={
-                        "retries": 3 if os.environ["ENVIRONMENT"] == "prod-v2" else 1,
-                        "retry_delay": timedelta(seconds=15),
-                        "execution_timeout": dag_config["execution_timeout"],
-                    },
-                )(dag_config, is_prod, s3_bucket=s3_bucket, dbv2_conn_id=dbv2_conn_id)
+                generate_dag(
+                    dag_config, is_prod, s3_bucket=s3_bucket, dbv2_conn_id=dbv2_conn_id
+                )
 
 
 # So long as this file is not being run by pytest, run the full dagfactory when called.
