@@ -30,6 +30,15 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
     else:
         dag_timeout = None
 
+    execution_timeout = dag_config["execution_timeout"]
+
+    # Have to pop dag_timeout and execution_timeout because it is a timedelta
+    try:
+        dag_config.pop("execution_timeout")
+        dag_config.pop("dagrun_timeout")
+    except:
+        pass
+
     @dag(
         dag_id=dag_config["dag_id"],
         schedule=dag_config["schedule_interval"],
@@ -40,7 +49,7 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
         default_args={
             "retries": 3 if is_prod else 1,
             "retry_delay": timedelta(seconds=15),
-            "execution_timeout": dag_config["execution_timeout"],
+            "execution_timeout": execution_timeout,
         },
     )
     def databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id):
