@@ -24,7 +24,7 @@ from scripts.update_postgres_tracker_table import (
 )
 
 
-def generate_dag(dag_config: dict, is_prod : bool = False, s3_bucket, dbv2_conn_id):
+def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
     if dag_config["dagrun_timeout"]:
         dag_timeout = timedelta(seconds=dag_config["dagrun_timeout"])
     else:
@@ -108,25 +108,25 @@ def generate_dag(dag_config: dict, is_prod : bool = False, s3_bucket, dbv2_conn_
         checks() >> send_dept_to_viewer() >> set_viewer_privileges()
 
     ## We cannot directly pass dag_config because it is not json serializable
-    #dag_config_dict = dag_config.to_dict()
+    # dag_config_dict = dag_config.to_dict()
 
     ## We have to pop the time deltas since they are not json serializable
-    #try:
+    # try:
     #    dag_config_dict.pop("dagrun_timeout")
-    #except KeyError:
+    # except KeyError:
     #    pass
 
-    #try:
+    # try:
     #    dag_config_dict.pop("execution_timeout")
-    #except KeyError:
+    # except KeyError:
     #    pass
 
-    #databridge_dag_factory(
+    # databridge_dag_factory(
     #    dag_config=dag_config_dict,
     #    is_prod=is_prod,
     #    s3_bucket=s3_bucket,
     #    dbv2_conn_id=dbv2_conn_id,
-    #)
+    # )
     databridge_dag_factory()
 
 
