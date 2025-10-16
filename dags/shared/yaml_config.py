@@ -156,7 +156,7 @@ class DagConfig:
 
     # Return the inner dictionary
     def to_dict(self):
-        return self._config
+        return self._config.copy()
 
 
 def get_yaml_data(file_path: str, encoding: str = "utf-8"):
