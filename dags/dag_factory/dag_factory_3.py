@@ -69,6 +69,7 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
                     "rowcount_difference_threshold"
                 ],
                 force_registered=dag_config["force_viewer_registered"],
+                context=context,
             )
 
         @task.bash()
@@ -107,26 +108,6 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
 
         checks() >> send_dept_to_viewer() >> set_viewer_privileges()
 
-    ## We cannot directly pass dag_config because it is not json serializable
-    # dag_config_dict = dag_config.to_dict()
-
-    ## We have to pop the time deltas since they are not json serializable
-    # try:
-    #    dag_config_dict.pop("dagrun_timeout")
-    # except KeyError:
-    #    pass
-
-    # try:
-    #    dag_config_dict.pop("execution_timeout")
-    # except KeyError:
-    #    pass
-
-    # databridge_dag_factory(
-    #    dag_config=dag_config_dict,
-    #    is_prod=is_prod,
-    #    s3_bucket=s3_bucket,
-    #    dbv2_conn_id=dbv2_conn_id,
-    # )
     databridge_dag_factory()
 
 

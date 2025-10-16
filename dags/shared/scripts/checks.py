@@ -12,7 +12,7 @@ def checks(
     target_table_schema,
     rowcount_difference_threshold,
     force_registered,
-    **context,
+    context,
 ):
     """
     Checks to determine if we're good to start the DAG.
