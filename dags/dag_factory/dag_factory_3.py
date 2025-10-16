@@ -25,7 +25,6 @@ from scripts.update_postgres_tracker_table import (
 
 
 def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
-    raise Exception("WEAST TEST")
     if dag_config["dagrun_timeout"]:
         dag_timeout = timedelta(seconds=dag_config["dagrun_timeout"])
     else:
@@ -79,6 +78,8 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
         dag_config_dict.pop("execution_timeout")
     except KeyError:
         pass
+
+    raise Exception(str(dag_config_dict))
 
     databridge_dag_factory(
         dag_config_dict,
