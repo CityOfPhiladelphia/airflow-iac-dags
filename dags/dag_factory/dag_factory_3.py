@@ -24,12 +24,8 @@ from scripts.update_postgres_tracker_table import (
 )
 
 
-logger = logging.getLogger(__name__)
-
-logger.info("WEAST TEST 1234")
-
-
 def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
+    raise Exception("WEAST TEST")
     if dag_config["dagrun_timeout"]:
         dag_timeout = timedelta(seconds=dag_config["dagrun_timeout"])
     else:
@@ -78,16 +74,12 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
     # We cannot directly pass dag_config because it is not json serializable
     dag_config_dict = dag_config.to_dict()
     # We have to pop the time deltas since they are not json serializable
-    logger.info("Dag config one")
-    logger.info(dag_config_dict)
     try:
         dag_config_dict.pop("dagrun_timeout")
         dag_config_dict.pop("execution_timeout")
     except KeyError:
         pass
 
-    logger.info("Dag config two")
-    logger.info(dag_config_dict)
     databridge_dag_factory(
         dag_config_dict,
         is_prod,
@@ -227,7 +219,6 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
 
 def run_dagfactory():
     print("Running dag factory")
-    logger.info("WEAST TEST 5678")
     # Load OS config
     try:
         airflow_env = os.environ["ENVIRONMENT"]
@@ -296,7 +287,10 @@ def run_dagfactory():
                 # )
                 # Get timeout
                 generate_dag(
-                    dag_config, is_prod, s3_bucket=s3_bucket, dbv2_conn_id=dbv2_conn_id
+                    dag_config,
+                    is_prod,
+                    s3_bucket=s3_bucket,
+                    dbv2_conn_id=dbv2_conn_id,
                 )
 
 
