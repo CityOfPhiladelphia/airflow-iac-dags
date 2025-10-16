@@ -252,7 +252,7 @@ def update_postgres_tracker_table(
     upload_to_ago_dry_run,
     ago_user,
     ago_alternate_upload_name,
-    **context,
+    context,
 ):
     """
     If the dag is successful, update the latest Postgres XMIN as well as the Metadata entry in Knack.

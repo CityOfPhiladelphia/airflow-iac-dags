@@ -5,7 +5,6 @@ from packaging.version import Version
 
 
 def checks(
-    ti,
     table_name,
     table_schema,
     conn_id,
@@ -73,6 +72,7 @@ def checks(
             if not registered_three:
                 REGISTRATION_ERROR = "Inconsistent registration detected! Please remake the table. Reason: No XML definition found in sde.gdb_items!"
                 print(REGISTRATION_ERROR)
+            is_registered = False
         else:
             is_registered = False
             print("***Source table detected as NOT registered!***")
@@ -312,7 +312,7 @@ def checks(
         f"{table_schema.lower()}_{table_name.lower()}__{dag_run_id}_TABLE_DIFFERENT"
     )
     print(f'Saving "table_different" XCOM key: {xcom_table_different_key}: {DIFFERENT}')
-    ti.xcom_push(key=xcom_table_different_key, value=DIFFERENT)
+    context["ti"].xcom_push(key=xcom_table_different_key, value=DIFFERENT)
 
     # Save XMIN
     stmt = f"""SELECT xmin::text::bigint as xminint FROM {table_schema}.{table_name} ORDER BY xminint desc limit 1;"""
@@ -321,7 +321,7 @@ def checks(
     assert CURRENT_XMIN
     xcom_xmin_key = f"{table_schema.lower()}_{table_name.lower()}__{dag_run_id}_XMIN"
     print(f"Saving XMIN value {CURRENT_XMIN} to XCOM under key {xcom_xmin_key}")
-    ti.xcom_push(key=xcom_xmin_key, value=CURRENT_XMIN)
+    context["ti"].xcom_push(key=xcom_xmin_key, value=CURRENT_XMIN)
 
     # Save current row count of department table.
     stmt = f"""select count(*) FROM {table_schema}.{table_name};"""
@@ -334,7 +334,7 @@ def checks(
     print(
         f"Saving Row count {CURRENT_ROW_COUNT} to XCOM under key {xcom_row_count_key}"
     )
-    ti.xcom_push(key=xcom_row_count_key, value=CURRENT_ROW_COUNT)
+    context["ti"].xcom_push(key=xcom_row_count_key, value=CURRENT_ROW_COUNT)
 
     print("XCOM variables saved.")
 

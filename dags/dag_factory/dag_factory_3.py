@@ -59,8 +59,6 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
         @task()
         def checks():
             context = get_current_context()
-            logging.info("Context:")
-            logging.info(context)
             checks_func(
                 ti=context["ti"],
                 table_name=dag_config["table_name"],
@@ -108,7 +106,30 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
                 viewer_account=viewer_account,
             )
 
-        checks() >> send_dept_to_viewer() >> set_viewer_privileges()
+        # Update tracker table
+        @task
+        def update_tracker_table_and_metadata():
+            context = get_current_context()
+            update_postgres_tracker_table_func(
+                account_name=dag_config["account_name"],
+                ago_user="TEMPFIXLATER",
+                upload_to_knack=False,
+                upload_to_knack_dry_run=not is_prod,
+                upload_to_ago=dag_config["upload_to_ago"],
+                upload_to_ago_dry_run=not is_prod,
+                table_name=dag_config["table_name"],
+                ago_alternate_upload_name=dag_config["ago_alternate_upload_name"],
+                dest_schema=viewer_account,
+                conn_id=dbv2_conn_id,
+                context=context,
+            )
+
+        (
+            checks()
+            >> send_dept_to_viewer()
+            >> set_viewer_privileges()
+            >> update_tracker_table_and_metadata()
+        )
 
     databridge_dag_factory()
 
