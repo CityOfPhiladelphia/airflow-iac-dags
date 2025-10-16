@@ -22,7 +22,7 @@ with DAG(
         "airflow",
         "connections",
         "add",
-        "'test-add-connection",
+        "'test-add-connection'",
         "--conn-uri",
         "'https://admin:admin@phila.gov:443/test-schema?test-value=abcd'",
     ]
