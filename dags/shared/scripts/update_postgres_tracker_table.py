@@ -265,33 +265,34 @@ def update_postgres_tracker_table(
     account_name = account_name.lower()
     table_name = table_name.lower()
 
-    print("=====")
-    print(dr)
-    print("=====")
-    print(dir(dr))
-    print("=====")
+    # print("=====")
+    # print(dr)
+    # print("=====")
+    # print(dir(dr))
+    # print("=====")
 
     # Make a dictionary of all tasks in the dag where the key is the task name, and the value is it's state
     # state being 'failed', 'success', 'running', etc.
-    dag_tasks = {
-        task.task_id: task.state
-        for task in dr.task_instances()
-        if task.task_id != ti.task_id
-    }
+    # dag_tasks = {
+    #    task.task_id: task.state
+    #    for task in dr.task_instances()
+    #    if task.task_id != ti.task_id
+    # }
 
-    dag_tasks.pop("email_data_stewards_on_fail", None)
+    # dag_tasks.pop("email_data_stewards_on_fail", None)
 
-    # Remove success/None states, anything left means we have prior task failure
-    non_success_tasks = {}
-    for k, v in dag_tasks.items():
-        if v != "success" and v != "removed" and v is not None:
-            non_success_tasks[k] = v
+    ## Remove success/None states, anything left means we have prior task failure
+    # non_success_tasks = {}
+    # for k, v in dag_tasks.items():
+    #    if v != "success" and v != "removed" and v is not None:
+    #        non_success_tasks[k] = v
 
-    if non_success_tasks:
-        raise Exception(
-            f"Some task(s) havent finished or failed, not updating postgres xmin in tracker! Task(s): {non_success_tasks}"
-        )
-    else:
+    # if non_success_tasks:
+    #    raise Exception(
+    #        f"Some task(s) havent finished or failed, not updating postgres xmin in tracker! Task(s): {non_success_tasks}"
+    #    )
+    # else:
+    if True:  # Temp added line to keep spacing consistent
         print(
             "No running, failed, scheduled, or retrying tasks, updating postgres xmin in tracker table.."
         )

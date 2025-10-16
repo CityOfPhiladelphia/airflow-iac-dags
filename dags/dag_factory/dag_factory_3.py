@@ -129,8 +129,8 @@ def databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id):
         update_tracker_table_and_metadata = PythonOperator(
             task_id="update_tracker_table_and_metadata",
             python_callable=update_postgres_tracker_table_func,
-            trigger_rule=TriggerRule.ALL_DONE,
-            retries=10,
+            # trigger_rule=TriggerRule.ALL_DONE,
+            # retries=10,
             # these will be passed to the function as "kwargs"
             op_kwargs={
                 "account_name": dag_config["account_name"],
