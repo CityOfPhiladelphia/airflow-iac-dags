@@ -72,14 +72,19 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
 
     # We cannot directly pass dag_config because it is not json serializable
     dag_config_dict = dag_config.to_dict()
+
     # We have to pop the time deltas since they are not json serializable
     try:
         dag_config_dict.pop("dagrun_timeout")
+    except KeyError:
+        pass
+
+    try:
         dag_config_dict.pop("execution_timeout")
     except KeyError:
         pass
 
-    raise Exception(str(dag_config_dict))
+    # raise Exception(str(dag_config_dict))
 
     databridge_dag_factory(
         dag_config_dict,
