@@ -24,6 +24,9 @@ from scripts.update_postgres_tracker_table import (
 )
 
 
+log: logging.log = logging.getLogger("airflow")
+
+
 def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
     if dag_config["dagrun_timeout"]:
         dag_timeout = timedelta(seconds=dag_config["dagrun_timeout"])
@@ -73,12 +76,16 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
     # We cannot directly pass dag_config because it is not json serializable
     dag_config_dict = dag_config.to_dict()
     # We have to pop the time deltas since they are not json serializable
+    log.info("Dag config one")
+    log.info(dag_config_dict)
     try:
         dag_config_dict.pop("dagrun_timeout")
         dag_config_dict.pop("execution_timeout")
     except KeyError:
         pass
 
+    log.info("Dag config two")
+    log.info(dag_config_dict)
     databridge_dag_factory(
         dag_config_dict,
         is_prod,
