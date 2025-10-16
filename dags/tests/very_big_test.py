@@ -1,5 +1,4 @@
-from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.sdk import dag, task
 from kubernetes.client import models as k8s
 from datetime import datetime
 from pytz import timezone
@@ -31,18 +30,14 @@ default_args = {
     "start_date": datetime.now(timezone("US/Eastern")),
 }
 
-# Create the DAG
-with DAG(
-    # Name of the DAG, must be globally unique
-    dag_id="very_big_test",
-    default_args=default_args,
-    schedule=None,
-    catchup=False,
-    # Tags are useful for filtering
-    tags=["example"],
-) as dag:
-    hello_task_big = BashOperator(
-        task_id="hello_task_big",
-        bash_command="echo hello",
-        executor_config=executor_config_very_big_resources,
-    )
+
+@dag(tags=["example"], catchup=False)
+def very_big_test():
+    @task.bash
+    def hello_world_bash():
+        return 'echo "Hello world from Bash!"'
+
+    hello_world_bash.override(executor_config=executor_config_very_big_resources)
+
+
+very_big_test()

@@ -64,7 +64,7 @@ def hello_world_example():
 
     @task.bash
     def hello_world_bash():
-        return f'echo "Hello world from Bash!"'
+        return 'echo "Hello world from Bash!"'
 
     @task.bash
     def databridge_etl_tools_sample():

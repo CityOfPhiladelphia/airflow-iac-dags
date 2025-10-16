@@ -1,14 +1,7 @@
-from airflow import DAG
-from airflow.operators.bash import BashOperator
 from kubernetes.client import models as k8s
 from datetime import datetime
 from pytz import timezone
-import time
-
-default_args = {
-    "owner": "airflow",
-    "start_date": datetime.now(timezone("US/Eastern")),
-}
+from airflow.sdk import dag, task
 
 executor_config_small_resources = {
     "pod_override": k8s.V1Pod(
@@ -31,29 +24,22 @@ executor_config_small_resources = {
     )
 }
 
-# Create the DAG
-with DAG(
-    # Name of the DAG, must be globally unique
-    dag_id="long_test",
-    default_args=default_args,
-    # Cron schedule, this runs every  two hours. Set to 'None' for manual only
-    schedule="0 */2 * * *",
-    catchup=False,
-    # Tags are useful for filtering
-    tags=["example"],
-) as dag:
-    sleep_5_task = BashOperator(
-        task_id="sleep_5",
-        bash_command="sleep 300; echo completed",  # Sleep for 15 mins
-        executor_config=executor_config_small_resources,
-    )
-    sleep_10_task = BashOperator(
-        task_id="sleep_10",
-        bash_command="sleep 600; echo completed",  # Sleep for 15 mins
-        executor_config=executor_config_small_resources,
-    )
-    sleep_15_task = BashOperator(
-        task_id="sleep_15",
-        bash_command="sleep 900; echo completed",  # Sleep for 15 mins
-        executor_config=executor_config_small_resources,
-    )
+
+@dag(tags=["example"], schedule="0 */2 * * *", catchup=False)
+def long_test():
+    @task.bash
+    def sleep_task(seconds: int):
+        return f"sleep {seconds}; echo completed"
+
+    sleep_5 = sleep_task.override(
+        executor_config=executor_config_small_resources, task_id="sleep_5"
+    )(5 * 60)
+    sleep_10 = sleep_task.override(
+        executor_config=executor_config_small_resources, task_id="sleep_10"
+    )(10 * 60)
+    sleep_15 = sleep_task.override(
+        executor_config=executor_config_small_resources, task_id="sleep_15"
+    )(15 * 60)
+
+
+long_test()
