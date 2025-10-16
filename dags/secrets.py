@@ -24,7 +24,7 @@ with DAG(
         "add",
         "'test-add-connection'",
         "--conn-uri",
-        "'https://admin:admin@phila.gov:443/test-schema?test-value=abcd'",
+        "'http://admin:admin@phila.gov:443/test-schema?test-value=abcd'",
     ]
 
     BashOperator(task_id="add_test_connection", bash_command=" ".join(command))
