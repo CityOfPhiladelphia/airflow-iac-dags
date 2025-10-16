@@ -316,15 +316,15 @@ def update_postgres_tracker_table(
 
         print(f"\nPulling xcom keys...")
 
-        current_xmin = ti.xcom_pull(key=xcom_xmin_key)
+        current_xmin = ti.xcom_pull(key=xcom_xmin_key, task_ids="checks")
         assert current_xmin
         print(f"{xcom_xmin_key}: {current_xmin}")
 
-        current_row_count = ti.xcom_pull(key=xcom_row_count_key)
+        current_row_count = ti.xcom_pull(key=xcom_row_count_key, task_ids="checks")
         assert current_row_count
         print(f"{xcom_row_count_key}: {current_row_count}")
 
-        tables_different = ti.xcom_pull(key=xcom_table_different_key)
+        tables_different = ti.xcom_pull(key=xcom_table_different_key, task_ids="checks")
         assert tables_different
         print(f"{xcom_table_different_key}: {tables_different}")
         print()
