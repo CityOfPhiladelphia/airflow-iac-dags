@@ -59,6 +59,8 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
         @task()
         def checks():
             context = get_current_context()
+            logging.info("Context:")
+            logging.info(context)
             checks_func(
                 ti=context["ti"],
                 table_name=dag_config["table_name"],

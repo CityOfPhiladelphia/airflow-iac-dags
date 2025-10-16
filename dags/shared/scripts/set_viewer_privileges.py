@@ -5,13 +5,9 @@ import psycopg2.extras
 # import json
 
 
-def set_viewer_privileges(**kwargs):
-    share_privileges = kwargs["share_privileges"]
-    account_name = kwargs["account_name"]
-    table_name = kwargs["table_name"]
-    postgres_conn_id = kwargs["postgres_conn_id"]
-    viewer_account = kwargs["viewer_account"]
-
+def set_viewer_privileges(
+    share_privileges, account_name, table_name, postgres_conn_id, viewer_account
+):
     # In case viewer_account differs from account_name
     owning_dept = "_".join(viewer_account.split("_")[1:])
 
