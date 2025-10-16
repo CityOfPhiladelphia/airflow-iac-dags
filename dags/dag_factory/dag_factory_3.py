@@ -53,6 +53,9 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
         else:
             viewer_account = f"viewer_{dag_config['account_name']}"
 
+        dbv2_creds = PostgresHook.get_connection(dbv2_conn_id)
+        dbv2_conn_string = f"postgresql://{dbv2_creds.login}:{dbv2_creds.password}@{dbv2_creds.host}:{dbv2_creds.port}/{dbv2_creds.schema}"
+
         @task()
         def checks():
             context = get_current_context()
@@ -68,7 +71,41 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
                 force_registered=dag_config["force_viewer_registered"],
             )
 
-        checks()
+        @task.bash()
+        def send_dept_to_viewer():
+            send_dept_to_viewer_command = [
+                "databridge_etl_tools",
+                "db2",
+                f"--table_name={dag_config['table_name']}",
+                f"--account_name={dag_config['account_name']}",
+                f"--enterprise_schema={viewer_account}",
+                f"--copy_from_source_schema={dag_config['account_name']}",
+                f"--libpq_conn_string={dbv2_conn_string}",
+                f"--timeout={int(dag_config['execution_timeout'].total_seconds() // 60)}",
+            ]
+            if dag_config["index_fields"]:
+                send_dept_to_viewer_command.append(
+                    f"--index_fields={dag_config['index_fields']}"
+                )
+
+            # finish off command.
+            send_dept_to_viewer_command.append("copy-dept-to-enterprise")
+
+            return " ".join(send_dept_to_viewer_command)
+
+        # Set viewer privs
+        @task.skip_if(lambda ctx: dag_config["skip_optional_tasks"])
+        @task
+        def set_viewer_privileges():
+            set_viewer_privileges_func(
+                share_privileges=dag_config["share_privileges"],
+                account_name=dag_config["account_name"],
+                table_name=dag_config["table_name"],
+                postgres_conn_id=dbv2_conn_id,
+                viewer_account=viewer_account,
+            )
+
+        checks() >> send_dept_to_viewer() >> set_viewer_privileges()
 
     # We cannot directly pass dag_config because it is not json serializable
     dag_config_dict = dag_config.to_dict()
@@ -83,8 +120,6 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
         dag_config_dict.pop("execution_timeout")
     except KeyError:
         pass
-
-    # raise Exception(str(dag_config_dict))
 
     databridge_dag_factory(
         dag_config_dict,
