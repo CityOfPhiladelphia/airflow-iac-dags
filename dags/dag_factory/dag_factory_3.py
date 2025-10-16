@@ -24,7 +24,7 @@ from scripts.update_postgres_tracker_table import (
 )
 
 
-def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
+def generate_dag(dag_config: dict, is_prod : bool = False, s3_bucket, dbv2_conn_id):
     if dag_config["dagrun_timeout"]:
         dag_timeout = timedelta(seconds=dag_config["dagrun_timeout"])
     else:
@@ -43,7 +43,7 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
             "execution_timeout": dag_config["execution_timeout"],
         },
     )
-    def databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id):
+    def databridge_dag_factory():
         if dag_config["override_viewer_account"] and isinstance(
             dag_config["override_viewer_account"], str
         ):
@@ -107,26 +107,27 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
 
         checks() >> send_dept_to_viewer() >> set_viewer_privileges()
 
-    # We cannot directly pass dag_config because it is not json serializable
-    dag_config_dict = dag_config.to_dict()
+    ## We cannot directly pass dag_config because it is not json serializable
+    #dag_config_dict = dag_config.to_dict()
 
-    # We have to pop the time deltas since they are not json serializable
-    try:
-        dag_config_dict.pop("dagrun_timeout")
-    except KeyError:
-        pass
+    ## We have to pop the time deltas since they are not json serializable
+    #try:
+    #    dag_config_dict.pop("dagrun_timeout")
+    #except KeyError:
+    #    pass
 
-    try:
-        dag_config_dict.pop("execution_timeout")
-    except KeyError:
-        pass
+    #try:
+    #    dag_config_dict.pop("execution_timeout")
+    #except KeyError:
+    #    pass
 
-    databridge_dag_factory(
-        dag_config=dag_config_dict,
-        is_prod=is_prod,
-        s3_bucket=s3_bucket,
-        dbv2_conn_id=dbv2_conn_id,
-    )
+    #databridge_dag_factory(
+    #    dag_config=dag_config_dict,
+    #    is_prod=is_prod,
+    #    s3_bucket=s3_bucket,
+    #    dbv2_conn_id=dbv2_conn_id,
+    #)
+    databridge_dag_factory()
 
 
 # def databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id):
