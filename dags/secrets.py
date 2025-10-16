@@ -2,6 +2,8 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 from datetime import datetime
 from pytz import timezone
+from airflow.models import Connection
+import json
 
 default_args = {
     "owner": "airflow",
@@ -18,13 +20,21 @@ with DAG(
     # Tags are useful for filtering
     tags=["secrets"],
 ) as dag:
+    conn = Connection(
+        conn_id="test-abcd",
+        conn_type="http",
+        host="phila.gov",
+        login="admin",
+        password="admin",
+        port="443",
+    )
     command = [
         "airflow",
         "connections",
         "add",
         "'test-add-connection'",
-        "--conn-uri",
-        "'http://admin:admin@phila.gov:443/test-schema?test-value=abcd'",
+        "--conn-json",
+        f"'{json.dumps(conn.to_dict())}'",
     ]
 
     BashOperator(task_id="add_test_connection", bash_command=" ".join(command))
