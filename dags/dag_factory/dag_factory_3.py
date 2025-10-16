@@ -30,15 +30,6 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
     else:
         dag_timeout = None
 
-    execution_timeout = dag_config["execution_timeout"]
-
-    # Have to pop dag_timeout and execution_timeout because it is a timedelta
-    try:
-        dag_config.pop("execution_timeout")
-        dag_config.pop("dagrun_timeout")
-    except:
-        pass
-
     @dag(
         dag_id=dag_config["dag_id"],
         schedule=dag_config["schedule_interval"],
@@ -49,7 +40,7 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
         default_args={
             "retries": 3 if is_prod else 1,
             "retry_delay": timedelta(seconds=15),
-            "execution_timeout": execution_timeout,
+            "execution_timeout": dag_config["execution_timeout"],
         },
     )
     def databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id):
@@ -79,7 +70,21 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
 
         checks()
 
-    databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id)
+    # We cannot directly pass dag_config because it is not json serializable
+    dag_config_dict = dag_config.to_dict()
+    # We have to pop the time deltas since they are not json serializable
+    try:
+        dag_config_dict.pop("dagrun_timeout")
+        dag_config_dict.pop("execution_timeout")
+    except KeyError:
+        pass
+
+    databridge_dag_factory(
+        dag_config_dict,
+        is_prod,
+        s3_bucket,
+        dbv2_conn_id,
+    )
 
 
 # def databridge_dag_factory(dag_config, is_prod, s3_bucket, dbv2_conn_id):

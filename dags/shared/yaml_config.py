@@ -154,6 +154,10 @@ class DagConfig:
         else:
             return timedelta(minutes=int(self["execution_timeout"]))
 
+    # Return the inner dictionary
+    def to_dict(self):
+        return self._config
+
 
 def get_yaml_data(file_path: str, encoding: str = "utf-8"):
     with open(file_path, "rt", encoding=encoding) as f:
