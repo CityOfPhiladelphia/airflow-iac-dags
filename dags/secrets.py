@@ -25,8 +25,10 @@ with DAG(
         conn_type="http",
         host="phila.gov",
         login="admin",
-        password="admin",
+        password="adminpass",
+        schema="test-schema",
         port="443",
+        extra={"abcd": "defg"},
     )
     command = [
         "airflow",
