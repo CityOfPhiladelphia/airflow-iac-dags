@@ -122,10 +122,10 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
         pass
 
     databridge_dag_factory(
-        dag_config_dict,
-        is_prod,
-        s3_bucket,
-        dbv2_conn_id,
+        dag_config=dag_config_dict,
+        is_prod=is_prod,
+        s3_bucket=s3_bucket,
+        dbv2_conn_id=dbv2_conn_id,
     )
 
 
