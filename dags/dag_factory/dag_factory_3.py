@@ -26,6 +26,8 @@ from scripts.update_postgres_tracker_table import (
 
 logger = logging.getLogger(__name__)
 
+logger.info("WEAST TEST 1234")
+
 
 def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
     if dag_config["dagrun_timeout"]:
@@ -225,6 +227,7 @@ def generate_dag(dag_config, is_prod, s3_bucket, dbv2_conn_id):
 
 def run_dagfactory():
     print("Running dag factory")
+    logger.info("WEAST TEST 5678")
     # Load OS config
     try:
         airflow_env = os.environ["ENVIRONMENT"]
